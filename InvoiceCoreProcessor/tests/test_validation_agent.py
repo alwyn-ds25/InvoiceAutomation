@@ -1,48 +1,29 @@
 import unittest
-
 from invoice_core_processor.services.validation import run_validation_checks
 
 class TestValidationAgent(unittest.TestCase):
 
     def test_clean_invoice_validation(self):
-        """
-        Tests the validation service with a perfectly valid invoice schema.
-        Expects a score of 100 and a 'VALIDATED_CLEAN' status.
-        """
+        """Tests the validation service with a valid schema."""
         mapped_schema = {
-            "total_amount": 1150.00,
-            "line_items": [
-                {"quantity": 2, "unit_price": 500.00, "total": 1000.00},
-                {"quantity": 1, "unit_price": 150.00, "total": 150.00}
-            ]
+            "lineItems": [{"quantity": 2, "unitPrice": 500.00, "amount": 1000.00}],
+            "totals": {"subtotal": 1000.00, "gstAmount": 180.0, "roundOff": 0.0, "grandTotal": 1180.00}
         }
-
         result = run_validation_checks(mapped_schema, ocr_confidence=0.99)
-
         self.assertEqual(result['status'], 'VALIDATED_CLEAN')
         self.assertEqual(result['overall_score'], 100.0)
 
     def test_flagged_invoice_with_deductions(self):
-        """
-        Tests the validation service with a flawed invoice.
-        Checks if deductions are applied correctly to the final score.
-        """
+        """Tests the validation service with multiple errors."""
         mapped_schema = {
-            # Total amount doesn't match sum of line items (20 points deduction)
-            "total_amount": 1200.00,
-            "line_items": [
-                # Line item math is incorrect (20 points deduction)
-                {"quantity": 2, "unit_price": 500.00, "total": 990.00},
-                {"quantity": 1, "unit_price": 150.00, "total": 150.00}
-            ]
+            "lineItems": [{"quantity": 2, "unitPrice": 500.00, "amount": 999.00}], # LIT-004 fails (-20)
+            "totals": {"subtotal": 1000.00, "gstAmount": 180.0, "roundOff": 0.0, "grandTotal": 1200.00} # TTL-001 & TTL-003 fail (-20, -20)
         }
-
-        # Low OCR confidence adds another 5 points deduction
-        result = run_validation_checks(mapped_schema, ocr_confidence=0.80)
+        result = run_validation_checks(mapped_schema, ocr_confidence=0.6) # ANM-004 fails (-2.5)
 
         self.assertEqual(result['status'], 'VALIDATED_FLAGGED')
-        # Expected score: 100 - 20 (total mismatch) - 20 (line item) - 5 (ocr) = 55
-        self.assertEqual(result['overall_score'], 55.0)
+        # Expected score: 100 - 20 - 20 - 20 - 2.5 = 37.5
+        self.assertEqual(result['overall_score'], 37.5)
 
 if __name__ == '__main__':
     unittest.main()
