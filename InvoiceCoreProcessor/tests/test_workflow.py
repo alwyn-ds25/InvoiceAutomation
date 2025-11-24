@@ -3,17 +3,12 @@ import os
 import asyncio
 from unittest.mock import patch, MagicMock, AsyncMock
 
-# To allow running tests from the root directory
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# The settings import needs to be after the path is appended
-from InvoiceCoreProcessor.core.workflow import build_workflow_graph
+from invoice_core_processor.core.workflow import build_workflow_graph
 
 # Patch all the factories that create clients with external dependencies
-@patch('InvoiceCoreProcessor.core.workflow.get_agent_registry')
-@patch('InvoiceCoreProcessor.core.workflow.get_mcp_client')
-@patch('InvoiceCoreProcessor.core.workflow.get_ingestion_client')
+@patch('invoice_core_processor.core.workflow.get_agent_registry')
+@patch('invoice_core_processor.core.workflow.get_mcp_client')
+@patch('invoice_core_processor.core.workflow.get_ingestion_client')
 class TestWorkflow(unittest.TestCase):
 
     @classmethod
@@ -34,7 +29,6 @@ class TestWorkflow(unittest.TestCase):
         """
         # --- Configure Mocks ---
         mock_ingestion = MagicMock()
-        # Use AsyncMock for the async method
         mock_ingestion.ingest_file = AsyncMock(return_value={
             'status': 'SUCCESS', 'invoice_id': 'test-inv-123', 'storage_path': 'new/path.pdf'
         })

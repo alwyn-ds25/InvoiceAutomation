@@ -1,11 +1,6 @@
 import unittest
 
-# To allow running tests from the root directory
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from InvoiceCoreProcessor.services.validation import run_validation_checks
+from invoice_core_processor.services.validation import run_validation_checks
 
 class TestValidationAgent(unittest.TestCase):
 
