@@ -43,27 +43,22 @@ CREATE TABLE invoices (
     user_id          TEXT NOT NULL,
     vendor_id        UUID REFERENCES vendors(id),
     customer_id      UUID REFERENCES customers(id),
-
     invoice_no       TEXT NOT NULL,
     invoice_date     DATE NOT NULL,
     due_date         DATE,
-
     subtotal         NUMERIC(18, 2) NOT NULL,
     gst_amount       NUMERIC(18, 2),
     total_amount     NUMERIC(18, 2),
     round_off        NUMERIC(18, 2),
     grand_total      NUMERIC(18, 2) NOT NULL,
-
     payment_mode     TEXT,
     payment_reference TEXT,
     payment_status   TEXT,
-
-    upload_timestamp        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    extraction_confidence   NUMERIC(5, 4),
+    upload_timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    extraction_confidence NUMERIC(5, 4),
     status           TEXT NOT NULL DEFAULT 'PENDING',
     created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-
     UNIQUE (vendor_id, invoice_no, invoice_date)
 );
 
@@ -81,7 +76,7 @@ CREATE TABLE invoice_items (
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Validation tables (updated to reference the new invoices table)
+-- Validation tables (updated for the new checklist)
 CREATE TABLE validation_rule (
     id SERIAL PRIMARY KEY,
     rule_id TEXT NOT NULL UNIQUE,
@@ -105,7 +100,9 @@ CREATE TABLE invoice_validation_result (
     validation_run_id UUID NOT NULL REFERENCES invoice_validation_run(id) ON DELETE CASCADE,
     rule_id TEXT NOT NULL REFERENCES validation_rule(rule_id),
     status TEXT NOT NULL CHECK (status IN ('PASS','FAIL','WARN')),
-    message TEXT
+    message TEXT,
+    severity SMALLINT NOT NULL,
+    deduction_points NUMERIC(5,2) NOT NULL DEFAULT 0
 );
 
 -- Workflow audit table (no changes)
