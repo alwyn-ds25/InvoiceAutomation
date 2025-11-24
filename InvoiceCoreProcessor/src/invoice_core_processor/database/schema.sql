@@ -43,22 +43,33 @@ CREATE TABLE invoices (
     user_id          TEXT NOT NULL,
     vendor_id        UUID REFERENCES vendors(id),
     customer_id      UUID REFERENCES customers(id),
+
     invoice_no       TEXT NOT NULL,
     invoice_date     DATE NOT NULL,
     due_date         DATE,
+
     subtotal         NUMERIC(18, 2) NOT NULL,
     gst_amount       NUMERIC(18, 2),
     total_amount     NUMERIC(18, 2),
     round_off        NUMERIC(18, 2),
     grand_total      NUMERIC(18, 2) NOT NULL,
+
     payment_mode     TEXT,
     payment_reference TEXT,
     payment_status   TEXT,
-    upload_timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    extraction_confidence NUMERIC(5, 4),
+
+    upload_timestamp        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    extraction_confidence   NUMERIC(5, 4),
     status           TEXT NOT NULL DEFAULT 'PENDING',
+
+    -- New fields for metrics
+    processing_start_time   TIMESTAMPTZ,
+    processing_end_time     TIMESTAMPTZ,
+    processing_duration_ms  INTEGER,
+
     created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
     UNIQUE (vendor_id, invoice_no, invoice_date)
 );
 
@@ -76,7 +87,7 @@ CREATE TABLE invoice_items (
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Validation tables (updated for the new checklist)
+-- Validation tables
 CREATE TABLE validation_rule (
     id SERIAL PRIMARY KEY,
     rule_id TEXT NOT NULL UNIQUE,
