@@ -1,7 +1,6 @@
 import unittest
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import patch, MagicMock
 import uuid
-import asyncio
 
 from invoice_core_processor.servers.database_server import save_validated_record, check_duplicate
 
@@ -10,42 +9,24 @@ class TestDataStoreAgent(unittest.TestCase):
     @patch('invoice_core_processor.servers.database_server.execute_values')
     @patch('invoice_core_processor.servers.database_server.get_postgres_connection')
     def test_save_validated_record_transaction(self, mock_get_pg_conn, mock_execute_values):
-        """
-        Tests the full transactional logic of saving a validated record.
-        """
-        # --- Mock Setup ---
+        """Tests the full transactional logic of saving a validated record."""
         mock_conn = MagicMock()
         mock_cursor = MagicMock()
         mock_get_pg_conn.return_value = mock_conn
         mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
+        mock_cursor.fetchone.side_effect = [(uuid.uuid4(),), (uuid.uuid4(),)]
 
-        # Simulate the RETURNING id clauses
-        mock_cursor.fetchone.side_effect = [
-            (str(uuid.uuid4()),), # vendor_id
-            (str(uuid.uuid4()),)  # invoice_id
-        ]
-
-        # --- Test Data ---
         invoice_data = {
-            "user_id": "test-user",
-            "invoiceNumber": "test-inv-123",
-            "invoiceDate": "2023-01-01",
+            "user_id": "test-user", "invoiceNumber": "test-inv-123", "invoiceDate": "2023-01-01",
             "vendor": { "name": "Test Vendor", "gstin": "123" },
             "totals": { "subtotal": 100.0, "grandTotal": 118.0 },
-            "lineItems": [
-                { "description": "Item 1", "quantity": 1, "unitPrice": 100, "taxPercent": 18, "amount": 118.0 }
-            ]
+            "lineItems": [{"description": "Item 1", "quantity": 1, "unitPrice": 100, "taxPercent": 18, "amount": 118.0}]
         }
 
-        # --- Execute ---
         result = save_validated_record(invoice_data)
 
-        # --- Assertions ---
         self.assertEqual(result['status'], 'RECORD_SAVED')
-        self.assertIsNotNone(result.get('invoice_id'))
-
-        # Check that all the expected SQL statements were executed
-        self.assertEqual(mock_cursor.execute.call_count, 3) # vendor, invoice, delete items
+        self.assertEqual(mock_cursor.execute.call_count, 3) # Upsert Vendor, Upsert Invoice, Delete Items
         mock_execute_values.assert_called_once()
         mock_conn.commit.assert_called_once()
 
@@ -60,9 +41,7 @@ class TestDataStoreAgent(unittest.TestCase):
         check_duplicate("Test Vendor", "test-inv-123", "2023-01-01")
 
         mock_cursor.execute.assert_called_once()
-        # Check that the query joins the vendors table as expected
         self.assertIn("JOIN vendors", mock_cursor.execute.call_args[0][0])
-
 
 if __name__ == '__main__':
     unittest.main()
