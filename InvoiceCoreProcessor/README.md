@@ -25,9 +25,15 @@ InvoiceCoreProcessor is a high-performance, agentic module for automated invoice
 
 1. Clone the repository.
 2. Create a virtual environment: `python -m venv venv && source venv/bin/activate`
-3. Install the dependencies: `pip install -r requirements.txt`
+3. Install the project in editable mode. This will also install all dependencies from `pyproject.toml`:
+   ```bash
+   pip install -e .
+   ```
 4. Copy `.env.example` to `.env` and fill in the required values.
-5. Run database migrations (if implemented).
+5. Run the database seeding script to populate the validation rules:
+   ```bash
+   python -m invoice_core_processor.database.seed_rules
+   ```
 6. Start the services:
    - DataStore MCP server
    - OCR MCP server
