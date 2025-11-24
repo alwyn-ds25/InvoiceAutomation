@@ -7,6 +7,8 @@ from invoice_core_processor.config.logging_config import logger
 from invoice_core_processor.core.workflow import build_workflow_graph
 from invoice_core_processor.core.models import TargetSystem
 from invoice_core_processor.core.mcp_clients import MCPClient
+from invoice_core_processor.services.summary_agent_service import SummaryAgentService
+from typing import Dict, Any
 
 # --- FastAPI App Initialization ---
 
@@ -18,6 +20,7 @@ app = FastAPI(
 
 workflow_app = build_workflow_graph()
 mcp_client = MCPClient()
+summary_agent_service = SummaryAgentService()
 
 # --- API Models ---
 
@@ -48,6 +51,20 @@ def get_metrics():
     except Exception as e:
         logger.exception("Failed to retrieve metrics.")
         raise HTTPException(status_code=500, detail="Failed to retrieve metrics.")
+
+@app.post("/invoice/summary")
+async def get_invoice_summary(invoice_data: Dict[str, Any]):
+    """
+    Generates a summary of the invoice validation and integration status.
+    """
+    logger.info("Received API request for invoice summary.")
+    try:
+        summary = summary_agent_service.generate_summary(invoice_data)
+        return summary
+    except Exception as e:
+        logger.exception("Failed to generate invoice summary.")
+        raise HTTPException(status_code=500, detail="Failed to generate invoice summary.")
+
 
 @app.get("/")
 def read_root():

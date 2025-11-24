@@ -52,13 +52,16 @@ class InvoiceGraphState(TypedDict):
     extracted_text: Optional[str]
     mapped_schema: Optional[Dict]
     validation_flags: List[str]
+    validation_results: List[Dict]
     reliability_score: Optional[float]
     anomaly_details: Optional[List[Dict]]
     integration_payload_preview: Optional[Dict]
+    integration_status: Optional[str]
 
     # Additional fields for LangGraph orchestration
     current_step: str
     history: List[Dict]
+    summary: Optional[Dict]
 
 # Models for Agent Registry
 class ToolDefinition(BaseModel):
