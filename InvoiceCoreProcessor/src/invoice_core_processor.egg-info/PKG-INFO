@@ -1,0 +1,100 @@
+Metadata-Version: 2.4
+Name: invoice_core_processor
+Version: 0.1.0
+Summary: A multi-agent system for automated invoice processing.
+Author-email: Jules Coder <jules@example.com>
+Project-URL: Homepage, https://github.com/example/InvoiceCoreProcessor
+Project-URL: Bug Tracker, https://github.com/example/InvoiceCoreProcessor/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi
+Requires-Dist: uvicorn
+Requires-Dist: pydantic
+Requires-Dist: pydantic-settings
+Requires-Dist: langgraph
+Requires-Dist: psycopg2-binary
+Requires-Dist: motor
+Requires-Dist: grpcio
+Requires-Dist: grpcio-tools
+Requires-Dist: pdfplumber
+Requires-Dist: python-docx
+Requires-Dist: pytesseract
+Requires-Dist: easyocr
+Requires-Dist: python-dotenv
+Requires-Dist: loguru
+Requires-Dist: openai
+Requires-Dist: alembic
+
+# InvoiceCoreProcessor
+
+InvoiceCoreProcessor is a high-performance, agentic module for automated invoice ingestion, OCR, schema mapping, validation, anomaly detection, and posting into accounting systems.
+
+## Features
+
+- Invoice ingestion from various file formats
+- Cascading OCR pipeline for text extraction
+- LLM-based schema mapping
+- Validation and anomaly detection
+- Integration with accounting systems (Tally, Zoho, QuickBooks)
+- Reporting and review capabilities
+
+## Tech Stack
+
+- FastAPI
+- LangGraph
+- Google A2A SDK
+- Model Context Protocol (MCP)
+- gRPC
+- MongoDB
+- PostgreSQL
+
+## Getting Started
+
+1. Clone the repository.
+2. Create a virtual environment: `python -m venv venv && source venv/bin/activate`
+3. Install the dependencies: `pip install -r requirements.txt`
+4. Copy `.env.example` to `.env` and fill in the required values.
+5. Run database migrations (if implemented).
+6. Start the services:
+   - DataStore MCP server
+   - OCR MCP server
+   - Mapper MCP server
+   - Validation MCP server
+   - Ingestion gRPC server
+   - `main_processor.py` (FastAPI)
+
+## API Usage
+
+### Upload Invoice
+
+- **URL:** `/invoice/upload`
+- **Method:** `POST`
+- **Body:**
+  ```json
+  {
+    "user_id": "string",
+    "file_path": "string",
+    "target_system": "TALLY" | "ZOHO" | "QUICKBOOKS"
+  }
+  ```
+- **Response:**
+  ```json
+  {
+    "workflow_status": "string",
+    "invoice_id": "string",
+    "reliability_score": "float",
+    "validation_flags": "array",
+    "integration_status": "string"
+  }
+  ```
+
+## Agent Network
+
+The InvoiceCoreProcessor uses a network of agents to process invoices. These agents are discovered and orchestrated using the AgentRegistryService.
+
+## Extensibility
+
+New agents can be added to the system by creating a new MCP server and registering it with the AgentRegistryService.
